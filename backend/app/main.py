@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-
 from app.users.router import router as auth_router
 from app.db.database import init_db
-
+from fastapi import Depends
+from app.core.dependencies import get_current_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,3 +19,6 @@ def create_app() -> FastAPI:
     return app
 
 app = create_app()
+@app.get("/api/protected")
+async def protected_route(user=Depends(get_current_user)):
+    return {"message": "Access granted"}

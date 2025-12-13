@@ -30,3 +30,4 @@ asgi-lifespan
 passlib[argon2]
 argon2-cffi
 python-jose[cryptography]
+pydantic-settings>=2.0
