@@ -4,7 +4,7 @@ from app.users.router import router as auth_router
 from app.db.database import init_db
 from fastapi import Depends
 from app.core.dependencies import get_current_user
-
+from app.sweets.router import router as sweets_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
@@ -16,6 +16,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     app.include_router(auth_router)
+    app.include_router(sweets_router)
     return app
 
 app = create_app()

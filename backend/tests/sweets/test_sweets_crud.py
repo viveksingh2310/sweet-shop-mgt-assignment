@@ -1,12 +1,13 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from asgi_lifespan import LifespanManager
-from httpx import ASGITransport
+from app.main import app
+
 
 # ---------- CREATE SWEET (ADMIN) ----------
 
 @pytest.mark.asyncio
-async def test_admin_can_create_sweet(app, admin_token):
+async def test_admin_can_create_sweet(admin_token):
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -27,22 +28,30 @@ async def test_admin_can_create_sweet(app, admin_token):
 
 
 @pytest.mark.asyncio
-async def test_non_admin_cannot_create_sweet(app, user_token):
+async def test_non_admin_cannot_create_sweet(user_token):
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",
             headers={"Authorization": f"Bearer {user_token}"},
         ) as client:
-            response = await client.post("/api/sweets", json={})
+            response = await client.post(
+                "/api/sweets",
+                json={
+                    "name": "Ladoo",
+                    "category": "Indian",
+                    "price": 10,
+                    "quantity": 50,
+                },
+            )
 
     assert response.status_code == 403
 
 
-# ---------- LIST SWEETS ----------
+# ---------- LIST SWEETS (PUBLIC) ----------
 
 @pytest.mark.asyncio
-async def test_list_sweets_is_public(app):
+async def test_list_sweets_is_public():
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -57,7 +66,7 @@ async def test_list_sweets_is_public(app):
 # ---------- SEARCH SWEETS ----------
 
 @pytest.mark.asyncio
-async def test_search_sweets_by_name(app):
+async def test_search_sweets_by_name():
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -69,12 +78,13 @@ async def test_search_sweets_by_name(app):
             )
 
     assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 
 # ---------- UPDATE SWEET (ADMIN) ----------
 
 @pytest.mark.asyncio
-async def test_admin_can_update_sweet(app, admin_token):
+async def test_admin_can_update_sweet(admin_token):
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -92,7 +102,7 @@ async def test_admin_can_update_sweet(app, admin_token):
 # ---------- DELETE SWEET (ADMIN) ----------
 
 @pytest.mark.asyncio
-async def test_admin_can_delete_sweet(app, admin_token):
+async def test_admin_can_delete_sweet(admin_token):
     async with LifespanManager(app):
         async with AsyncClient(
             transport=ASGITransport(app=app),
