@@ -1,17 +1,11 @@
-from typing import Dict, List
-_users: List[Dict] = []
-_next_user_id: int = 1
+from app.db.database import AsyncSessionLocal
+from app.users.models import User
 
 
-def create_user(email: str, password: str) -> Dict:
-    global _next_user_id
-
-    user = {
-        "id": _next_user_id,
-        "email": email,
-        "password": password,
-    }
-
-    _users.append(user)
-    _next_user_id += 1
-    return user
+async def create_user(email: str, password: str) -> User:
+    async with AsyncSessionLocal() as session:
+        user = User(email=email, password=password)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
