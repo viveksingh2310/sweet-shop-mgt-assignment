@@ -1,14 +1,35 @@
-from datetime import datetime, timedelta
-from jose import jwt
+from datetime import datetime, timedelta, timezone
+from jose import jwt, JWTError
+from app.core.config import settings
 
-SECRET_KEY = "dev-secret-key"   # later move to env
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+def create_access_token(
+    subject: str,
+    expires_delta: timedelta | None = None,
+) -> str:
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=15)
     )
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    payload = {
+        "sub": subject,
+        "exp": expire,
+    }
+
+    return jwt.encode(
+        payload,
+        settings.JWT_SECRET,
+        algorithm=settings.JWT_ALGORITHM,
+    )
+
+
+def decode_access_token(token: str) -> str:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET,
+            algorithms=[settings.JWT_ALGORITHM],
+        )
+        return payload.get("sub")
+    except JWTError:
+        return None

@@ -28,27 +28,41 @@ async def register_user(email: str, password: str):
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already registered",
             )
+# async def authenticate_user(email: str, password: str) -> dict:
+#     async with AsyncSessionLocal() as session:
+#         user = await get_user_by_email(session, email)
+
+#         if not user:
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Invalid email or password",
+#             )
+
+#         if not verify_password(password, user.password):
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Invalid email or password",
+#             )
+
+#         token = create_access_token(
+#             data={"sub": str(user.id)}
+#         )
+
+#         return {
+#             "access_token": token,
+#             "token_type": "bearer",
+#         }
 async def authenticate_user(email: str, password: str) -> dict:
     async with AsyncSessionLocal() as session:
         user = await get_user_by_email(session, email)
 
-        if not user:
+        if not user or not verify_password(password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password",
+                detail="Invalid credentials",
             )
-
-        if not verify_password(password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password",
-            )
-
-        token = create_access_token(
-            data={"sub": str(user.id)}
-        )
-
+        access_token = create_access_token(subject=user.email)
         return {
-            "access_token": token,
+            "access_token": access_token,
             "token_type": "bearer",
         }

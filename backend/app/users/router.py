@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,Depends
 from pydantic import BaseModel
 from app.users.schemas import LoginRequest, TokenResponse
 from app.users.service import register_user, authenticate_user
-
+from app.users.models import User
+from app.core.dependencies import get_current_user
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
@@ -21,3 +22,12 @@ async def login(payload: LoginRequest):
         payload.email,
         payload.password,
     )
+@router.get("/me")
+async def read_profile(
+    current_user: User = Depends(get_current_user),
+):
+    return {
+        "email": current_user.email,
+        "id": current_user.id,
+    }
+
