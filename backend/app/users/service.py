@@ -1,18 +1,22 @@
-from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 
 from app.db.database import AsyncSessionLocal
-from app.users.models import User
+from app.users.repository import create_user
+from app.core.security import hash_password
 
 
-async def create_user(email: str, password: str):
+async def register_user(email: str, password: str):
+    hashed_password = hash_password(password)  # ✅ HASH HERE
+
     async with AsyncSessionLocal() as session:
-        user = User(email=email, password=password)
-        session.add(user)
-
         try:
+            user = await create_user(
+                session=session,
+                email=email,
+                password=hashed_password,  # ✅ STORE HASH
+            )
             await session.commit()
-            await session.refresh(user)
             return user
 
         except IntegrityError:

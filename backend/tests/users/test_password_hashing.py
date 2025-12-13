@@ -13,7 +13,6 @@ from app.users.models import User
 async def test_password_is_hashed_before_persisting():
     email = f"user_{uuid.uuid4()}@example.com"
     plain_password = "supersecret123"
-
     payload = {
         "email": email,
         "password": plain_password,
