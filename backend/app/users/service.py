@@ -1,20 +1,22 @@
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
-
+from app.users.models import User
 from app.db.database import AsyncSessionLocal
 from app.users.repository import create_user
 from app.core.security import hash_password
-
+from sqlalchemy.future import select
+from app.core.security import verify_password
+from app.core.jwt import create_access_token
 
 async def register_user(email: str, password: str):
-    hashed_password = hash_password(password)  # ✅ HASH HERE
+    hashed_password = hash_password(password) 
 
     async with AsyncSessionLocal() as session:
         try:
             user = await create_user(
                 session=session,
                 email=email,
-                password=hashed_password,  # ✅ STORE HASH
+                password=hashed_password, 
             )
             await session.commit()
             return user
@@ -25,3 +27,21 @@ async def register_user(email: str, password: str):
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already registered",
             )
+        
+async def authenticate_user(email: str, password: str) -> str:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+
+        if not user or not verify_password(password, user.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials",
+            )
+
+        token = create_access_token(
+            data={"sub": str(user.id)}
+        )
+        return token
