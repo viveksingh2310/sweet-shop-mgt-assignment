@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-
+from app.users.schemas import LoginRequest, TokenResponse
 from app.users.service import register_user, authenticate_user
 
-router = APIRouter(prefix="/api/auth", tags=["Auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 class AuthPayload(BaseModel):
@@ -15,14 +15,9 @@ class AuthPayload(BaseModel):
 async def register(payload: AuthPayload):
     return await register_user(payload.email, payload.password)
 
-
-@router.post("/login")
-async def login(payload: AuthPayload):
-    token = await authenticate_user(
+@router.post("/login", response_model=TokenResponse)
+async def login(payload: LoginRequest):
+    return await authenticate_user(
         payload.email,
         payload.password,
     )
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-    }

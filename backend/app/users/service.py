@@ -7,6 +7,7 @@ from app.core.security import hash_password
 from sqlalchemy.future import select
 from app.core.security import verify_password
 from app.core.jwt import create_access_token
+from app.users.repository import get_user_by_email
 
 async def register_user(email: str, password: str):
     hashed_password = hash_password(password) 
@@ -27,21 +28,27 @@ async def register_user(email: str, password: str):
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already registered",
             )
-        
-async def authenticate_user(email: str, password: str) -> str:
+async def authenticate_user(email: str, password: str) -> dict:
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            select(User).where(User.email == email)
-        )
-        user = result.scalar_one_or_none()
+        user = await get_user_by_email(session, email)
 
-        if not user or not verify_password(password, user.password):
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials",
+                detail="Invalid email or password",
+            )
+
+        if not verify_password(password, user.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
             )
 
         token = create_access_token(
             data={"sub": str(user.id)}
         )
-        return token
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+        }

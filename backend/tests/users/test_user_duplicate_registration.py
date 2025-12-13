@@ -22,14 +22,11 @@ async def test_registering_duplicate_email_returns_409():
             transport=transport,
             base_url="http://test",
         ) as client:
-            # First registration → should succeed
             first_response = await client.post(
                 "/api/auth/register",
                 json=payload,
             )
             assert first_response.status_code == 201
-
-            # Second registration → should fail
             second_response = await client.post(
                 "/api/auth/register",
                 json=payload,
