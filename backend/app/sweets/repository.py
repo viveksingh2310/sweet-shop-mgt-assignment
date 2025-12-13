@@ -1,6 +1,6 @@
 from sqlalchemy import select,and_
 from app.sweets.models import Sweet
-
+from sqlalchemy.ext.asyncio import AsyncSession
 async def create_sweet(session, data):
     sweet = Sweet(**data)
     session.add(sweet)
@@ -43,3 +43,33 @@ async def search_sweets(
 
     result = await session.execute(query)
     return result.scalars().all()
+
+async def purchase_sweet(session: AsyncSession, sweet_id: int):
+    result = await session.execute(
+        select(Sweet).where(Sweet.id == sweet_id)
+    )
+    sweet = result.scalar_one_or_none()
+
+    if not sweet:
+        return None
+
+    if sweet.quantity <= 0:
+        raise ValueError("Out of stock")
+
+    sweet.quantity -= 1
+    await session.commit()
+    return sweet
+
+
+async def restock_sweet(session: AsyncSession, sweet_id: int, qty: int):
+    result = await session.execute(
+        select(Sweet).where(Sweet.id == sweet_id)
+    )
+    sweet = result.scalar_one_or_none()
+
+    if not sweet:
+        return None
+
+    sweet.quantity += qty
+    await session.commit()
+    return sweet

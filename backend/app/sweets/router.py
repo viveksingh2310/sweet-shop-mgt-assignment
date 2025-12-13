@@ -1,18 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,status
 from app.db.database import AsyncSessionLocal
 from app.sweets.repository import (
     create_sweet,
     list_sweets,
     search_sweets,
     get_sweet_by_id,
+    purchase_sweet, 
+    restock_sweet
 )
 from app.users.models import User
-from app.core.dependencies import require_admin
-
+from app.core.dependencies import require_admin,get_current_user
 router = APIRouter(prefix="/api/sweets", tags=["Sweets"])
 
 
-# ---------- CREATE SWEET (ADMIN ONLY) ----------
 @router.post("", status_code=201)
 async def add_sweet(
     payload: dict,
@@ -22,14 +22,12 @@ async def add_sweet(
         return await create_sweet(session, payload)
 
 
-# ---------- LIST SWEETS (PUBLIC) ----------
 @router.get("")
 async def get_all_sweets():
     async with AsyncSessionLocal() as session:
         return await list_sweets(session)
 
 
-# ---------- SEARCH SWEETS (PUBLIC) ----------
 @router.get("/search")
 async def search_sweets_endpoint(
     name: str | None = None,
@@ -47,7 +45,6 @@ async def search_sweets_endpoint(
         )
 
 
-# ---------- UPDATE SWEET (ADMIN ONLY) ----------
 @router.put("/{sweet_id}")
 async def update_sweet_endpoint(
     sweet_id: int,
@@ -67,7 +64,6 @@ async def update_sweet_endpoint(
         return sweet
 
 
-# ---------- DELETE SWEET (ADMIN ONLY) ----------
 @router.delete("/{sweet_id}", status_code=204)
 async def delete_sweet_endpoint(
     sweet_id: int,
@@ -80,3 +76,44 @@ async def delete_sweet_endpoint(
 
         await session.delete(sweet)
         await session.commit()
+
+@router.post("/{sweet_id}/purchase")
+async def purchase_sweet_endpoint(
+    sweet_id: int,
+    user: User = Depends(get_current_user),
+):
+    async with AsyncSessionLocal() as session:
+        try:
+            sweet = await purchase_sweet(session, sweet_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Out of stock")
+
+        if not sweet:
+            raise HTTPException(status_code=404)
+
+        return {
+            "message": "Purchase successful",
+            "remaining_quantity": sweet.quantity,
+        }
+
+@router.post("/{sweet_id}/restock")
+async def restock_sweet_endpoint(
+    sweet_id: int,
+    payload: dict,
+    admin: User = Depends(require_admin),
+):
+    qty = payload.get("quantity")
+
+    if not isinstance(qty, int) or qty <= 0:
+        raise HTTPException(status_code=400, detail="Invalid quantity")
+
+    async with AsyncSessionLocal() as session:
+        sweet = await restock_sweet(session, sweet_id, qty)
+
+        if not sweet:
+            raise HTTPException(status_code=404)
+
+        return {
+            "message": "Restocked successfully",
+            "quantity": sweet.quantity,
+        }
