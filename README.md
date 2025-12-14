@@ -2,6 +2,7 @@
 # DEPLOYED LINK :- https://sweet-shop-mgt-assignment-2.onrender.com/
 ## IMPORTANT INSTRUCTION FOR ACCESSING ADMIN ROUTES
 ### Register using "admin@gmail.com" with password as "admin". THEN ONLY YOU CAN ACCESS THE ADMIN ROUTES.
+### Also register with your personal email to check the working of non-admin user functionality.
 # **MY AI USAGE**
 -Used AI to select best backend and frontend technology that I should use to make the best of my known and worked technology. AI told me to use Fastapi + Vue (because i already worked in MERN)
 -making decision about which database should i use that should be simpler for me to avoid learning new thing.
