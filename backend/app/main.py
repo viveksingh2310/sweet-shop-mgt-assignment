@@ -16,12 +16,7 @@ def create_app() -> FastAPI:
         title="Sweet Shop Management API",
         lifespan=lifespan,
     )
-    app.include_router(auth_router)
-    app.include_router(sweets_router)
-    return app
-
-app = create_app()
-app.add_middleware(
+    app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
@@ -32,6 +27,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+    app.include_router(auth_router)
+    app.include_router(sweets_router)
+    return app
+
+app = create_app()
+
 @app.get("/api/protected")
 async def protected_route(user=Depends(get_current_user)):
     return {"message": "Access granted"}
