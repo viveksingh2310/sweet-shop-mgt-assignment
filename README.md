@@ -2,6 +2,16 @@
 # DEPLOYED LINK :- https://sweet-shop-mgt-assignment-2.onrender.com/
 ## IMPORTANT INSTRUCTION FOR ACCESSING ADMIN ROUTES
 ### Register using "admin@gmail.com" with password as "admin". THEN ONLY YOU CAN ACCESS THE ADMIN ROUTES.
+# **MY AI USAGE**
+-Used AI to select best backend and frontend technology that I should use to make the best of my known and worked technology. AI told me to use Fastapi + Vue (because i already worked in MERN)
+-making decision about which database should i use that should be simpler for me to avoid learning new thing.
+-knowing command to initiate project both in backend and frontend
+-understanding developing diff server for backend and frontend
+-understanding and implementing hashing though correct syntax.
+-developing some prior test cases.
+-interpreting the various api endpoints (converting the given task documnet api endpoint to simpler words)
+-designing ideas and resolving issues in forntend connectivity to backend on render.
+
 ## What is the Project?
 
 The **Sweet Shop Management System** is a full-stack web application designed to manage sweets mgt.
@@ -52,6 +62,7 @@ The application is built using a **FastAPI** and **Vue.js**, making it scalable,
 - **Render** – Cloud deployment
 
 ---
+
 ## TEST CASES RESULT
 Total 16 test cases where there and all were passed through pytest.
 
