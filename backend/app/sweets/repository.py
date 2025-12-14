@@ -44,7 +44,14 @@ async def search_sweets(
     result = await session.execute(query)
     return result.scalars().all()
 
-async def purchase_sweet(session: AsyncSession, sweet_id: int):
+async def purchase_sweet(
+    session: AsyncSession,
+    sweet_id: int,
+    quantity: int = 1,   # ✅ default = 1
+):
+    if quantity <= 0:
+        raise ValueError("Purchase quantity must be greater than zero")
+
     result = await session.execute(
         select(Sweet).where(Sweet.id == sweet_id)
     )
@@ -53,14 +60,15 @@ async def purchase_sweet(session: AsyncSession, sweet_id: int):
     if not sweet:
         return None
 
-    if sweet.quantity <= 0:
-        raise ValueError("Out of stock")
+    if sweet.quantity < quantity:
+        raise ValueError("Insufficient stock")
 
-    sweet.quantity -= 1
+    sweet.quantity -= quantity
     await session.commit()
+    await session.refresh(sweet)
+
     return sweet
-
-
+# admin routes only
 async def restock_sweet(session: AsyncSession, sweet_id: int, qty: int):
     result = await session.execute(
         select(Sweet).where(Sweet.id == sweet_id)

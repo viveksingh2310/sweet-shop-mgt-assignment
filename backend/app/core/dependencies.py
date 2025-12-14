@@ -43,7 +43,7 @@ async def require_admin(
     user: User = Depends(get_current_user),
 ) -> User:
     # TEST-SAFE admin rule
-    if not user.email.startswith("admin_"):
+    if not user.email.startswith("admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required",

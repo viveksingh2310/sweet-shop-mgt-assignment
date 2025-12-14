@@ -6,7 +6,6 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = "super-secret-key"
     JWT_ALGORITHM: str = "HS256"
-   # 👇 admin users defined here
     ADMIN_EMAILS: Set[str] = {
         "admin@example.com",
         "viveksingh@example.com"
